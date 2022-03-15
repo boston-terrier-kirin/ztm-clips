@@ -7,6 +7,10 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
   styleUrls: ['./register.component.css'],
 })
 export class RegisterComponent implements OnInit {
+  showAlert = false;
+  alertMessage = 'Please wait! Your account is being created.';
+  alertColor = 'blue';
+
   name = new FormControl('', [Validators.required, Validators.minLength(3)]);
   email = new FormControl('', [Validators.required, Validators.email]);
   age = new FormControl('', [
@@ -16,15 +20,17 @@ export class RegisterComponent implements OnInit {
   ]);
   password = new FormControl('', [
     Validators.required,
-    Validators.pattern(
-      '/^(?=.*d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm'
-    ),
+    // エラーになってしまうのでいったんコメントアウト
+    // Validators.pattern(
+    //   '/^(?=.*d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm'
+    // ),
   ]);
   confirmPassword = new FormControl('', [
     Validators.required,
-    Validators.pattern(
-      '/^(?=.*d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm'
-    ),
+    // エラーになってしまうのでいったんコメントアウト
+    // Validators.pattern(
+    //   '/^(?=.*d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/gm'
+    // ),
   ]);
   phoneNumber = new FormControl('', [
     Validators.required,
@@ -44,4 +50,10 @@ export class RegisterComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {}
+
+  register() {
+    this.showAlert = true;
+    this.alertMessage = 'Please wait! Your account is being created.';
+    this.alertColor = 'blue';
+  }
 }
