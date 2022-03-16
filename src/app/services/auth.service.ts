@@ -4,6 +4,8 @@ import {
   AngularFirestore,
   AngularFirestoreCollection,
 } from '@angular/fire/compat/firestore';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import User from '../models/User';
 
 @Injectable({
@@ -11,15 +13,18 @@ import User from '../models/User';
 })
 export class AuthService {
   private usersCollection: AngularFirestoreCollection<Partial<User>>;
+  public isAuthenticated$: Observable<boolean>;
 
   constructor(
     private auth: AngularFireAuth,
     private firestore: AngularFirestore
   ) {
     this.usersCollection = this.firestore.collection('users');
+    this.isAuthenticated$ = this.auth.user.pipe(map((user) => !!user));
   }
 
   public async createUser(userData: User) {
+    // ユーザを作った時点でIndexedDBにtokenが格納されて、次回以降のリクエストは自動的にtokenがセットされる仕組みのよう。
     const userCredential = await this.auth.createUserWithEmailAndPassword(
       userData.email,
       userData.password
