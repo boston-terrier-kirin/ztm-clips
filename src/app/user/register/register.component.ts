@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 
 @Component({
   selector: 'app-register',
@@ -10,6 +11,7 @@ export class RegisterComponent implements OnInit {
   showAlert = false;
   alertMessage = 'Please wait! Your account is being created.';
   alertColor = 'blue';
+  inSubmission = false;
 
   name = new FormControl('', [Validators.required, Validators.minLength(3)]);
   email = new FormControl('', [Validators.required, Validators.email]);
@@ -47,13 +49,34 @@ export class RegisterComponent implements OnInit {
     phoneNumber: this.phoneNumber,
   });
 
-  constructor() {}
+  constructor(private auth: AngularFireAuth) {}
 
   ngOnInit(): void {}
 
-  register() {
+  async register() {
     this.showAlert = true;
     this.alertMessage = 'Please wait! Your account is being created.';
     this.alertColor = 'blue';
+    this.inSubmission = true;
+
+    try {
+      const userCredentials = await this.auth.createUserWithEmailAndPassword(
+        this.email.value,
+        this.password.value
+      );
+      console.log(userCredentials);
+    } catch (e) {
+      console.error(e);
+
+      this.alertMessage =
+        'An unexpected error occurred. Please try again later';
+      this.alertColor = 'red';
+      this.inSubmission = false;
+      return;
+    }
+
+    this.alertMessage = 'Success! Your account has been created.';
+    this.alertColor = 'green';
+    this.inSubmission = false;
   }
 }
