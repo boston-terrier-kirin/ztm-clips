@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -49,7 +49,7 @@ export class RegisterComponent implements OnInit {
     phoneNumber: this.phoneNumber,
   });
 
-  constructor(private auth: AngularFireAuth) {}
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {}
 
@@ -60,11 +60,7 @@ export class RegisterComponent implements OnInit {
     this.inSubmission = true;
 
     try {
-      const userCredentials = await this.auth.createUserWithEmailAndPassword(
-        this.email.value,
-        this.password.value
-      );
-      console.log(userCredentials);
+      await this.authService.createUser(this.form.value);
     } catch (e) {
       console.error(e);
 
