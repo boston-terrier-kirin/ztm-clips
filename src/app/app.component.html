@@ -264,4 +264,6 @@
   </div>
 </section>
 
-<app-auth-modal></app-auth-modal>
+<app-auth-modal
+  *ngIf="!(authService.isAuthenticated$ | async)"
+></app-auth-modal>
