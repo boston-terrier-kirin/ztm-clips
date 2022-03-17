@@ -7,6 +7,7 @@ export class RegisterValidator {
       const matchingControl = group.get(matchingControlName);
 
       if (!control || !matchingControl) {
+        console.error('Form controls cat not found in the form group.');
         return {
           controlNotFound: false,
         };
@@ -14,6 +15,9 @@ export class RegisterValidator {
 
       const error =
         control.value === matchingControl.value ? null : { noMatch: true };
+
+      // 相関チェックした結果をフォームコントロールに紐づける
+      matchingControl.setErrors(error);
 
       return error;
     };
