@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from 'src/app/services/auth.service';
+import { EmailValidator } from '../validators/email-validator';
+import { RegisterValidator } from '../validators/register-validator';
 
 @Component({
   selector: 'app-register',
@@ -14,7 +16,11 @@ export class RegisterComponent implements OnInit {
   inSubmission = false;
 
   name = new FormControl('', [Validators.required, Validators.minLength(3)]);
-  email = new FormControl('', [Validators.required, Validators.email]);
+  email = new FormControl(
+    '',
+    [Validators.required, Validators.email],
+    [this.emailValidator.validate]
+  );
   age = new FormControl('', [
     Validators.required,
     Validators.min(18),
@@ -40,16 +46,22 @@ export class RegisterComponent implements OnInit {
     Validators.maxLength(14),
   ]);
 
-  form = new FormGroup({
-    name: this.name,
-    email: this.email,
-    age: this.age,
-    password: this.password,
-    confirmPassword: this.confirmPassword,
-    phoneNumber: this.phoneNumber,
-  });
+  form = new FormGroup(
+    {
+      name: this.name,
+      email: this.email,
+      age: this.age,
+      password: this.password,
+      confirmPassword: this.confirmPassword,
+      phoneNumber: this.phoneNumber,
+    },
+    [RegisterValidator.match('password', 'confirmPassword')]
+  );
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private emailValidator: EmailValidator
+  ) {}
 
   ngOnInit(): void {}
 
