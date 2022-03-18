@@ -11,6 +11,7 @@ import { NavComponent } from './nav/nav.component';
 import { environment } from 'src/environments/environment';
 import { HomeComponent } from './home/home.component';
 import { AboutComponent } from './about/about.component';
+import { VideoModule } from './video/video.module';
 
 @NgModule({
   declarations: [AppComponent, NavComponent, HomeComponent, AboutComponent],
@@ -21,6 +22,7 @@ import { AboutComponent } from './about/about.component';
     AngularFirestoreModule,
     AppRoutingModule,
     UserModule,
+    VideoModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
