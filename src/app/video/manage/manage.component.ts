@@ -13,12 +13,20 @@ export class ManageComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params: Params) => {
-      this.videoOrder = params['sort'] === 2 ? params['sort'] : '1';
+      this.videoOrder = params['sort'] === '2' ? params['sort'] : '1';
     });
   }
 
   sort(e: Event) {
     const { value } = e.target as HTMLSelectElement;
-    this.router.navigateByUrl(`/manage?sort=${value}`);
+
+    // this.router.navigateByUrl(`/manage?sort=${value}`);
+    // navigate + relativeTo を使えば、URL直書きを減らせる。
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        sort: value,
+      },
+    });
   }
 }
