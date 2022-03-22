@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import firebase from 'firebase/compat/app';
+import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { v4 as uuid } from 'uuid';
-import { last } from 'rxjs/operators';
+import { last, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-upload',
@@ -19,13 +21,19 @@ export class UploadComponent implements OnInit {
   inSubmission = false;
   showPercentage = false;
   percentage = 0;
+  user: firebase.User | null = null;
 
   title = new FormControl('', [Validators.required]);
   form = new FormGroup({
     title: this.title,
   });
 
-  constructor(private fireStorage: AngularFireStorage) {}
+  constructor(
+    private fireAuth: AngularFireAuth,
+    private fireStorage: AngularFireStorage
+  ) {
+    this.fireAuth.user.subscribe((user) => (this.user = user));
+  }
 
   ngOnInit(): void {}
 
@@ -57,17 +65,32 @@ export class UploadComponent implements OnInit {
     const clipPath = `clips/${clipFileName}.mp4`;
 
     const task = this.fireStorage.upload(clipPath, this.file);
+    const clipRef = this.fireStorage.ref(clipPath);
+
     task.percentageChanges().subscribe((progress) => {
       this.percentage = (progress as number) / 100;
     });
+
     task
       .snapshotChanges()
       .pipe(
         // complete/errorするまでの値は無視する。
-        last()
+        last(),
+        // 【消化不良】switchMapしているので、アップロードを無視するのでは？⇒一応、ちゃんと動くっぽい。
+        switchMap(() => clipRef.getDownloadURL())
       )
       .subscribe({
-        next: (snapshot) => {
+        next: (url) => {
+          const clip = {
+            uid: this.user?.uid,
+            displayName: this.user?.displayName,
+            title: this.title.value,
+            fileName: `${clipFileName}.mp4`,
+            url,
+          };
+
+          console.log(clip);
+
           this.alertColor = 'green';
           this.alertMessage =
             'Success! Your clip is now ready to share with the world.';
