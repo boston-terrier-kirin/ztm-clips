@@ -42,8 +42,13 @@ export class UploadComponent implements OnInit {
   storeFile(event: Event) {
     this.isDragover = false;
 
-    this.file = (event as DragEvent).dataTransfer?.files.item(0) ?? null;
-    console.log(this.file);
+    if ((event as DragEvent).dataTransfer) {
+      // Drap & Dropの場合
+      this.file = (event as DragEvent).dataTransfer?.files.item(0) ?? null;
+    } else {
+      // File選択の場合
+      this.file = (event.target as HTMLInputElement).files?.item(0) ?? null;
+    }
 
     if (!this.file || this.file.type !== 'video/mp4') {
       return;
@@ -57,6 +62,7 @@ export class UploadComponent implements OnInit {
   }
 
   uploadFile() {
+    this.form.disable();
     this.showAlert = true;
     this.alertColor = 'blue';
     this.alertMessage = 'Please wait! Your clip is being uploaded.';
@@ -107,6 +113,7 @@ export class UploadComponent implements OnInit {
           this.alertMessage = 'Upload failed! Please try again later.';
           this.inSubmission = true;
           this.showPercentage = false;
+          this.form.enable();
           console.error(error);
         },
       });
