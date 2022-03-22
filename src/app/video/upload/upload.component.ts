@@ -9,6 +9,7 @@ import {
 import { v4 as uuid } from 'uuid';
 import { last, switchMap } from 'rxjs/operators';
 import { ClipService } from 'src/app/services/clip.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-upload',
@@ -37,6 +38,7 @@ export class UploadComponent implements OnInit, OnDestroy {
   constructor(
     private fireAuth: AngularFireAuth,
     private fireStorage: AngularFireStorage,
+    private router: Router,
     private clipService: ClipService
   ) {
     this.fireAuth.user.subscribe((user) => (this.user = user));
@@ -98,7 +100,7 @@ export class UploadComponent implements OnInit, OnDestroy {
         switchMap(() => clipRef.getDownloadURL())
       )
       .subscribe({
-        next: (url) => {
+        next: async (url) => {
           const clip = {
             // as stringをつけることで、
             // Type 'string | undefined' is not assignable to type 'string'. のエラーを回避できる。
@@ -107,15 +109,21 @@ export class UploadComponent implements OnInit, OnDestroy {
             title: this.title.value,
             fileName: `${clipFileName}.mp4`,
             url,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           };
 
           console.log(clip);
-          this.clipService.createClip(clip);
+          const clipDocRef = await this.clipService.createClip(clip);
 
           this.alertColor = 'green';
           this.alertMessage =
             'Success! Your clip is now ready to share with the world.';
           this.showPercentage = false;
+
+          setTimeout(() => {
+            // https://firebase.google.com/docs/reference/node/firebase.firestore.DocumentReference
+            this.router.navigate(['clip', clipDocRef.id]);
+          }, 1000);
         },
         error: (error) => {
           // https://firebase.google.com/docs/storage/web/handle-errors
