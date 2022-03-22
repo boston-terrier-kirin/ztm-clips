@@ -7,7 +7,7 @@ import {
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { map, delay, filter, switchMap } from 'rxjs/operators';
-import User from '../models/User';
+import User from '../models/user.model';
 
 @Injectable({
   providedIn: 'root',
