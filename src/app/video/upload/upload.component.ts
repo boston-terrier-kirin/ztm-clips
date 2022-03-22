@@ -5,6 +5,7 @@ import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { AngularFireStorage } from '@angular/fire/compat/storage';
 import { v4 as uuid } from 'uuid';
 import { last, switchMap } from 'rxjs/operators';
+import { ClipService } from 'src/app/services/clip.service';
 
 @Component({
   selector: 'app-upload',
@@ -30,7 +31,8 @@ export class UploadComponent implements OnInit {
 
   constructor(
     private fireAuth: AngularFireAuth,
-    private fireStorage: AngularFireStorage
+    private fireStorage: AngularFireStorage,
+    private clipService: ClipService
   ) {
     this.fireAuth.user.subscribe((user) => (this.user = user));
   }
@@ -82,14 +84,17 @@ export class UploadComponent implements OnInit {
       .subscribe({
         next: (url) => {
           const clip = {
-            uid: this.user?.uid,
-            displayName: this.user?.displayName,
+            // as stringをつけることで、
+            // Type 'string | undefined' is not assignable to type 'string'. のエラーを回避できる。
+            uid: this.user?.uid as string,
+            displayName: this.user?.displayName as string,
             title: this.title.value,
             fileName: `${clipFileName}.mp4`,
             url,
           };
 
           console.log(clip);
+          this.clipService.createClip(clip);
 
           this.alertColor = 'green';
           this.alertMessage =
