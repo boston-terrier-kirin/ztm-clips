@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import firebase from 'firebase/compat/app';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { AngularFireStorage } from '@angular/fire/compat/storage';
+import {
+  AngularFireStorage,
+  AngularFireUploadTask,
+} from '@angular/fire/compat/storage';
 import { v4 as uuid } from 'uuid';
 import { last, switchMap } from 'rxjs/operators';
 import { ClipService } from 'src/app/services/clip.service';
@@ -12,7 +15,7 @@ import { ClipService } from 'src/app/services/clip.service';
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.css'],
 })
-export class UploadComponent implements OnInit {
+export class UploadComponent implements OnInit, OnDestroy {
   isDragover = false;
   file: File | null = null;
   nextStep = false;
@@ -23,6 +26,8 @@ export class UploadComponent implements OnInit {
   showPercentage = false;
   percentage = 0;
   user: firebase.User | null = null;
+
+  task?: AngularFireUploadTask;
 
   title = new FormControl('', [Validators.required]);
   form = new FormGroup({
@@ -38,6 +43,11 @@ export class UploadComponent implements OnInit {
   }
 
   ngOnInit(): void {}
+
+  ngOnDestroy(): void {
+    // アップロード中に他の画面に遷移した場合、キャンセルする。
+    this.task?.cancel();
+  }
 
   storeFile(event: Event) {
     this.isDragover = false;
@@ -72,14 +82,14 @@ export class UploadComponent implements OnInit {
     const clipFileName = uuid();
     const clipPath = `clips/${clipFileName}.mp4`;
 
-    const task = this.fireStorage.upload(clipPath, this.file);
+    this.task = this.fireStorage.upload(clipPath, this.file);
     const clipRef = this.fireStorage.ref(clipPath);
 
-    task.percentageChanges().subscribe((progress) => {
+    this.task.percentageChanges().subscribe((progress) => {
       this.percentage = (progress as number) / 100;
     });
 
-    task
+    this.task
       .snapshotChanges()
       .pipe(
         // complete/errorするまでの値は無視する。
