@@ -3,9 +3,11 @@
   <p class="text-2xl font-bold">Edit Video</p>
 
   <!-- Alert -->
-  <app-alert *ngIf="showAlert" [color]="alertColor">
-    <p>{{ alertMessage }}</p>
-  </app-alert>
+  <div *ngIf="showAlert" class="mt-4">
+    <app-alert [color]="alertColor">
+      <p>{{ alertMessage }}</p>
+    </app-alert>
+  </div>
 
   <!-- Form -->
   <form [formGroup]="form" (ngSubmit)="submit()">

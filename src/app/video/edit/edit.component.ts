@@ -5,6 +5,8 @@ import {
   OnInit,
   OnChanges,
   SimpleChanges,
+  Output,
+  EventEmitter,
 } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Clip } from 'src/app/models/clip.model';
@@ -18,6 +20,7 @@ import { ModalService } from 'src/app/services/modal.service';
 })
 export class EditComponent implements OnInit, OnChanges, OnDestroy {
   @Input() activeClip: Clip | null = null;
+  @Output() update = new EventEmitter();
 
   showAlert = false;
   inSubmission = false;
@@ -52,6 +55,8 @@ export class EditComponent implements OnInit, OnChanges, OnDestroy {
     // modalが開いて、ngOnChangesが呼ばれたタイミングで、formの初期値をセットする。
     console.log('ngOnChanges', this.activeClip);
 
+    this.showAlert = false;
+    this.inSubmission = false;
     this.clipId.setValue(this.activeClip.docId);
     this.title.setValue(this.activeClip.title);
   }
@@ -61,6 +66,10 @@ export class EditComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   async submit() {
+    if (!this.activeClip) {
+      return;
+    }
+
     this.showAlert = true;
     this.inSubmission = true;
     this.alertColor = 'blue';
@@ -74,6 +83,9 @@ export class EditComponent implements OnInit, OnChanges, OnDestroy {
       this.alertMessage = 'Something went wrong. Try again later';
       return;
     }
+
+    this.activeClip.title = this.title.value;
+    this.update.emit(this.activeClip);
 
     this.inSubmission = false;
     this.alertColor = 'green';
