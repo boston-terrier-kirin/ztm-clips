@@ -30,6 +30,7 @@ export class UploadComponent implements OnInit, OnDestroy {
   user: firebase.User | null = null;
   task?: AngularFireUploadTask;
   screenShots: string[] = [];
+  selectedScreenShot = '';
 
   title = new FormControl('', [Validators.required]);
   form = new FormGroup({
@@ -74,6 +75,7 @@ export class UploadComponent implements OnInit, OnDestroy {
     }
 
     this.screenShots = await this.ffmpegService.getScreenShots(this.file);
+    this.selectedScreenShot = this.screenShots[0];
 
     this.title.setValue(
       // 拡張子なし

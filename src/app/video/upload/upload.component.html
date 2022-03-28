@@ -53,7 +53,12 @@
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div
               *ngFor="let screenShot of screenShots"
-              class="border-8 cursor-pointer border-green-400"
+              class="border-8 cursor-pointer"
+              [ngClass]="{
+                'border-green-400': screenShot === selectedScreenShot,
+                'border-transparent': screenShot !== selectedScreenShot
+              }"
+              (click)="selectedScreenShot = screenShot"
             >
               <img [src]="screenShot | safeURL" />
             </div>
