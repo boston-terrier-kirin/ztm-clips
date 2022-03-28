@@ -8,5 +8,6 @@ export interface Clip {
   fileName: string;
   url: string;
   screenShotUrl: string;
+  screenShotFileName: string;
   timestamp: firebase.firestore.FieldValue;
 }
