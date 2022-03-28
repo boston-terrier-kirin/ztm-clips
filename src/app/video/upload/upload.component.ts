@@ -7,6 +7,7 @@ import {
   AngularFireUploadTask,
 } from '@angular/fire/compat/storage';
 import { v4 as uuid } from 'uuid';
+import { combineLatest } from 'rxjs';
 import { last, switchMap } from 'rxjs/operators';
 import { ClipService } from 'src/app/services/clip.service';
 import { Router } from '@angular/router';
@@ -93,24 +94,37 @@ export class UploadComponent implements OnInit, OnDestroy {
     this.inSubmission = true;
     this.showPercentage = true;
 
+    // mp4のアップロード
     const clipFileName = uuid();
     const clipPath = `clips/${clipFileName}.mp4`;
 
+    this.task = this.fireStorage.upload(clipPath, this.file);
+    const clipRef = this.fireStorage.ref(clipPath);
+
+    // サムネのアップロード
     const screenShotBlob = await this.ffmpegService.blobFromURL(
       this.selectedScreenShot
     );
     const screenShotPath = `screenShots/${clipFileName}.png`;
-
-    this.task = this.fireStorage.upload(clipPath, this.file);
-    const clipRef = this.fireStorage.ref(clipPath);
 
     this.screenShotTask = this.fireStorage.upload(
       screenShotPath,
       screenShotBlob
     );
 
-    this.task.percentageChanges().subscribe((progress) => {
-      this.percentage = (progress as number) / 100;
+    // mp4＋サムネの両方でパーセンテージを計算する
+    combineLatest([
+      this.task.percentageChanges(),
+      this.screenShotTask.percentageChanges(),
+    ]).subscribe((progress) => {
+      const [clipProgress, screenShotProgress] = progress;
+
+      if (!clipProgress || !screenShotProgress) {
+        return;
+      }
+
+      const total = clipProgress + screenShotProgress;
+      this.percentage = (total as number) / 200;
     });
 
     this.task
@@ -134,7 +148,6 @@ export class UploadComponent implements OnInit, OnDestroy {
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           };
 
-          console.log(clip);
           const clipDocRef = await this.clipService.createClip(clip);
 
           this.alertColor = 'green';
