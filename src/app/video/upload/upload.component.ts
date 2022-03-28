@@ -7,8 +7,8 @@ import {
   AngularFireUploadTask,
 } from '@angular/fire/compat/storage';
 import { v4 as uuid } from 'uuid';
-import { combineLatest } from 'rxjs';
-import { last, switchMap } from 'rxjs/operators';
+import { combineLatest, forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ClipService } from 'src/app/services/clip.service';
 import { Router } from '@angular/router';
 import { FfmpegService } from 'src/app/services/ffmpeg.service';
@@ -94,23 +94,23 @@ export class UploadComponent implements OnInit, OnDestroy {
     this.inSubmission = true;
     this.showPercentage = true;
 
-    // mp4のアップロード
     const clipFileName = uuid();
-    const clipPath = `clips/${clipFileName}.mp4`;
 
+    // mp4のアップロード
+    const clipPath = `clips/${clipFileName}.mp4`;
     this.task = this.fireStorage.upload(clipPath, this.file);
     const clipRef = this.fireStorage.ref(clipPath);
 
     // サムネのアップロード
+    const screenShotPath = `screenShots/${clipFileName}.png`;
     const screenShotBlob = await this.ffmpegService.blobFromURL(
       this.selectedScreenShot
     );
-    const screenShotPath = `screenShots/${clipFileName}.png`;
-
     this.screenShotTask = this.fireStorage.upload(
       screenShotPath,
       screenShotBlob
     );
+    const screenShotRef = this.fireStorage.ref(screenShotPath);
 
     // mp4＋サムネの両方でパーセンテージを計算する
     combineLatest([
@@ -127,16 +127,22 @@ export class UploadComponent implements OnInit, OnDestroy {
       this.percentage = (total as number) / 200;
     });
 
-    this.task
-      .snapshotChanges()
+    forkJoin([
+      this.task.snapshotChanges(),
+      this.screenShotTask.snapshotChanges(),
+    ])
       .pipe(
+        // forkJoinを適用したことでlastは使わなくなった。
         // complete/errorするまでの値は無視する。
-        last(),
-        // 【消化不良】switchMapしているので、アップロードを無視するのでは？⇒一応、ちゃんと動くっぽい。
-        switchMap(() => clipRef.getDownloadURL())
+        // last(),
+        switchMap(() =>
+          forkJoin([clipRef.getDownloadURL(), screenShotRef.getDownloadURL()])
+        )
       )
       .subscribe({
-        next: async (url) => {
+        next: async (urls) => {
+          const [clipUrl, screenShotUrl] = urls;
+
           const clip = {
             // as stringをつけることで、
             // Type 'string | undefined' is not assignable to type 'string'. のエラーを回避できる。
@@ -144,7 +150,8 @@ export class UploadComponent implements OnInit, OnDestroy {
             displayName: this.user?.displayName as string,
             title: this.title.value,
             fileName: `${clipFileName}.mp4`,
-            url,
+            url: clipUrl,
+            screenShotUrl: screenShotUrl,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           };
 
