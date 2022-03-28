@@ -28,8 +28,8 @@ export class UploadComponent implements OnInit, OnDestroy {
   showPercentage = false;
   percentage = 0;
   user: firebase.User | null = null;
-
   task?: AngularFireUploadTask;
+  screenShots: string[] = [];
 
   title = new FormControl('', [Validators.required]);
   form = new FormGroup({
@@ -69,7 +69,7 @@ export class UploadComponent implements OnInit, OnDestroy {
       return;
     }
 
-    await this.ffmpegService.getScreenShots(this.file);
+    this.screenShots = await this.ffmpegService.getScreenShots(this.file);
 
     this.title.setValue(
       // 拡張子なし
