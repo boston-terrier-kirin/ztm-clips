@@ -54,7 +54,7 @@ export class UploadComponent implements OnInit, OnDestroy {
     this.task?.cancel();
   }
 
-  storeFile(event: Event) {
+  async storeFile(event: Event) {
     this.isDragover = false;
 
     if ((event as DragEvent).dataTransfer) {
@@ -68,6 +68,8 @@ export class UploadComponent implements OnInit, OnDestroy {
     if (!this.file || this.file.type !== 'video/mp4') {
       return;
     }
+
+    await this.ffmpegService.getScreenShots(this.file);
 
     this.title.setValue(
       // 拡張子なし
