@@ -119,6 +119,7 @@ export class UploadComponent implements OnInit, OnDestroy {
     ]).subscribe((progress) => {
       const [clipProgress, screenShotProgress] = progress;
 
+      // combineLatestを使っているので片方が終わっていない可能性がある。
       if (!clipProgress || !screenShotProgress) {
         return;
       }
